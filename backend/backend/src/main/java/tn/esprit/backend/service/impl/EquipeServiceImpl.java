@@ -65,4 +65,9 @@ public class EquipeServiceImpl implements IEquipeService {
         equipe.getProjets().add(projet);
         return equipeRepository.save(equipe);
     }
+
+    public String boom() {
+        String s = null;
+        return s.toUpperCase();   // intentional NullPointerException
+    }
 }
