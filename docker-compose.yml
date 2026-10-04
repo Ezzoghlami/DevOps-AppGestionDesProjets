@@ -1,0 +1,50 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: projets_db
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - app-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    image: ${DOCKERHUB_USER:-local}/projets-backend:latest
+    container_name: backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/projets_db?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    ports:
+      - "8083:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-net
+
+  frontend:
+    build: ./frontend
+    image: ${DOCKERHUB_USER:-local}/projets-frontend:latest
+    container_name: frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+    networks:
+      - app-net
+
+volumes:
+  mysql-data:
+
+networks:
+  app-net:
+    driver: bridge
